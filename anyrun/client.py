@@ -19,6 +19,7 @@ class AnyRunClient:
         self._on_message_cb = on_message_cb
         websocket.enableTrace(enable_trace)
         self._con = None
+        self.filter()
 
     def connect(self):
         url = "wss://app.any.run/sockjs/{id}/{token}/websocket".format(
@@ -41,6 +42,31 @@ class AnyRunClient:
     def send_message(self, msg: dict) -> None:
         self._con.send(json.dumps([json.dumps(msg)]))
 
+    def filter(self, params = {}) -> None:
+
+        self.filter_params = {
+                "isPublic": True,
+                "hash": "",
+                "major": "",
+                "bit": "",
+                "runtype": [],
+                "name": "",
+                "verdict": [],
+                "specs": [],
+                "ext": [],
+                "tag": '',
+                "significant": False,
+                "ip": "",
+                "fileHash": "",
+                "mitreId": "",
+                "sid": 0,
+                "skip": 0
+            }
+
+        for key, val in params.items():
+            if key in self.filter_params:
+                self.filter_params[key] = val
+
     def _init_connection(self):
         self.send_message({"msg": "connect", "version": "1", "support": ["1", "pre2", "pre1"]})
         self.send_message({"msg": "method", "method": "host", "params": [], "id": "1"})
@@ -51,42 +77,8 @@ class AnyRunClient:
         self.subscribe('teams')
         self.subscribe('tasksHistoryCounter')
         self.subscribe('publicTasks', [
-            50, 0, {
-                "isPublic": True,
-                "hash": "",
-                "major": "",
-                "bit": "",
-                "runtype": [],
-                "name": "",
-                "verdict": [],
-                "specs": [],
-                "ext": [],
-                "tag": "",
-                "significant": False,
-                "ip": "",
-                "fileHash": "",
-                "mitreId": "",
-                "sid": 0,
-                "skip": 0
-            }])
-        self.subscribe('publicTasksCounter', [{
-            "isPublic": True,
-            "hash": "",
-            "major": "",
-            "bit": "",
-            "runtype": [],
-            "name": "",
-            "verdict": [],
-            "specs": [],
-            "ext": [],
-            "tag": "",
-            "significant": False,
-            "ip": "",
-            "fileHash": "",
-            "mitreId": "",
-            "sid": 0,
-            "skip": 0
-        }])
+            50, 0, self.filter_params])
+        self.subscribe('publicTasksCounter', [self.filter_params])
 
     def subscribe(self, name: str, params: list = None) -> None:
         if not params:
