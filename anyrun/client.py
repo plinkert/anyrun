@@ -20,6 +20,7 @@ class AnyRunClient:
         websocket.enableTrace(enable_trace)
         self._con = None
         self.filter()
+        self.tasks = None
 
     def connect(self):
         url = "wss://app.any.run/sockjs/{id}/{token}/websocket".format(
@@ -72,13 +73,19 @@ class AnyRunClient:
         self.send_message({"msg": "method", "method": "host", "params": [], "id": "1"})
         self.send_message({"msg": "method", "method": "getPrefix", "params": [], "id": "2"})
         self.subscribe('meteor.loginServiceConfiguration')
-        self.subscribe('activeTasks')
-        self.subscribe('settings')
-        self.subscribe('teams')
-        self.subscribe('tasksHistoryCounter')
-        self.subscribe('publicTasks', [
-            50, 0, self.filter_params])
-        self.subscribe('publicTasksCounter', [self.filter_params])
+        self.task_reports()
+
+    def set_task_list(self, tasks: list = None):
+        self.tasks = tasks
+
+    def task_reports(self):
+        if not self.tasks:
+            self.subscribe('publicTasks', [
+                50, 0, self.filter_params])
+            self.subscribe('publicTasksCounter', [self.filter_params])
+        else:
+            for task in self.tasks:
+                self.send_message({'msg':'method', 'method':'getIOC', 'params':['any.run', task],"id":"3"})
 
     def subscribe(self, name: str, params: list = None) -> None:
         if not params:
