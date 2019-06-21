@@ -42,7 +42,9 @@ class AnyRunClient:
     def send_message(self, msg: dict) -> None:
         self._con.send(json.dumps([json.dumps(msg)]))
 
-    def filter(self, params = {}) -> None:
+    def filter(self, params: dict = None) -> None:
+        if not params:
+            params = {}
 
         self.filter_params = {
                 "isPublic": True,

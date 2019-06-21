@@ -49,6 +49,35 @@ And as a response you should get
 ...
 ...
 ```
+If You want use filters
+
+```
+from anyrun import AnyRunClient
+
+
+def callback(msg: dict) -> None:
+    print(msg)
+
+
+if __name__ == "__main__":
+    client = AnyRunClient(
+        on_message_cb=callback,
+        enable_trace=False
+    )
+    client.filter(params = {'tag':'trojan'}) #You can add any filter available in any.run
+    client.connect()
+    client.run_forever()
+
+````
+And as a response you should get
+```
+...
+...
+{{"msg":"added","collection":"tasks","id":"5d0ca3db1cf0363374c72d5e",...,"tags":["trojan","nanocore","rat"],... }
+...
+...
+```
+
 ### Settings
 
 |param|description|
